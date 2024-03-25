@@ -98,9 +98,7 @@ class NeonSite(TowerSite):
             os.path.join(self.cesmroot, "cime_config", "usermods_dirs", "NEON", self.name)
         ]
         tower_type = "NEON"
-        super().run_case(
-            base_case_root, run_type, prism, user_version, tower_type, user_mods_dirs
-        )
+        super().run_case(base_case_root, run_type, prism, user_version, tower_type, user_mods_dirs)
 
     def set_ref_case(self, case):
         super().set_ref_case(case)
