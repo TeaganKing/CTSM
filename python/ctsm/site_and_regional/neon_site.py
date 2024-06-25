@@ -18,6 +18,7 @@ from ctsm.site_and_regional.tower_site import TowerSite
 # pylint: disable=wrong-import-position, import-error, unused-import, wrong-import-order
 from ctsm import add_cime_to_path
 from ctsm.path_utils import path_to_ctsm_root
+from ctsm.utils import abort
 
 from CIME import build
 from CIME.case import Case
@@ -46,14 +47,9 @@ class NeonSite(TowerSite):
             user_mods_dirs = [
                 os.path.join(self.cesmroot, "cime_config", "usermods_dirs", "NEON", self.name)
             ]
-            print("in neonsite adding usermodsdirs")
-        print("usermodsdirs: {}".format(user_mods_dirs))
         case_path = super().build_base_case(cesmroot, output_root, res, compset, user_mods_dirs)
 
         return case_path
-
-    # def get_batch_query(self, case):
-    #    return super().get_batch_query(case)
 
     # pylint: disable=too-many-statements
     def run_case(
@@ -98,11 +94,21 @@ class NeonSite(TowerSite):
             os.path.join(self.cesmroot, "cime_config", "usermods_dirs", "NEON", self.name)
         ]
         tower_type = "NEON"
-        super().run_case(base_case_root, run_type, prism, user_version, tower_type, user_mods_dirs)
 
-    def set_ref_case(self, case):
-        super().set_ref_case(case)
-        return True  ### Check if super returns false, if this will still return True?
+        super().run_case(
+            base_case_root,
+            run_type,
+            prism,
+            run_length,
+            user_version,
+            tower_type,
+            user_mods_dirs,
+            overwrite,
+            setup_only,
+            no_batch,
+            rerun,
+            experiment,
+        )
 
     def modify_user_nl(self, case_root, run_type, rundir, site_lines=None):
         # TODO: include neon-specific user namelist lines, using this as just an example currently

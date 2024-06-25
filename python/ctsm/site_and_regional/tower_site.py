@@ -21,6 +21,7 @@ sys.path.insert(1, _CTSM_PYTHON)
 # pylint: disable=wrong-import-position, import-error, unused-import, wrong-import-order
 from ctsm import add_cime_to_path
 from ctsm.path_utils import path_to_ctsm_root
+from ctsm.utils import abort
 
 from CIME import build
 from CIME.case import Case
@@ -100,6 +101,9 @@ class TowerSite:
 
         if overwrite and os.path.isdir(case_path):
             print("Removing the existing case at: {}".format(case_path))
+            if os.getcwd() == case_path:
+                abort("Trying to remove the directory tree that we are in")
+
             shutil.rmtree(case_path)
 
         with Case(case_path, read_only=False) as case:
@@ -243,6 +247,7 @@ class TowerSite:
         return True
 
     # pylint: disable=too-many-statements
+    # TODO: This code should be broken up into smaller pieces
     def run_case(
         self,
         base_case_root,
@@ -251,11 +256,11 @@ class TowerSite:
         user_version,
         tower_type,
         user_mods_dirs,
-        overwrite=False,
-        setup_only=False,
-        no_batch=False,
-        rerun=False,
-        experiment=False,
+        overwrite,
+        setup_only,
+        no_batch,
+        rerun,
+        experiment,
     ):
         """
         Run case.
@@ -293,7 +298,7 @@ class TowerSite:
 
         print("using this version:", version)
 
-        if experiment is not False:
+        if (experiment is not False) and (experiment is not None):
             self.name = self.name + "." + experiment
         case_root = os.path.abspath(os.path.join(base_case_root, "..", self.name + "." + run_type))
 
@@ -301,6 +306,9 @@ class TowerSite:
         if os.path.isdir(case_root):
             if overwrite:
                 print("---- removing the existing case -------")
+                if os.getcwd() == case_root:
+                    abort("Trying to remove the directory tree that we are in")
+
                 shutil.rmtree(case_root)
             elif rerun:
                 with Case(case_root, read_only=False) as case:
@@ -379,10 +387,12 @@ class TowerSite:
                 case.set_value("RUN_TYPE", "hybrid")
 
             if run_type == "postad":
+                case.case_setup()
                 self.set_ref_case(case)
 
             # For transient cases STOP will be set in the user_mod_directory
             if run_type == "transient":
+                case.case_setup()
                 if self.finidat:
                     case.set_value("RUN_TYPE", "startup")
                 else:
